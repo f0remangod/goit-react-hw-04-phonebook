@@ -4,87 +4,70 @@ import { Filter } from 'components/PhonebookComponents/Filter/Filter';
 import { ContactsList } from 'components/PhonebookComponents/ContactsList/ContactsList';
 import { PhonebookForm } from 'components/PhonebookComponents/PhonebookForm/PhonebookForm';
 import { Section } from 'components/Section/Section';
+import { useState } from 'react';
+import { useEffect } from 'react';
 
-export class App extends React.Component {
-  state = {
-    contacts: initialValues,
-    filter: '',
-  };
+export const App = () => {
+  const [contacts, setContacts] = useState(() => {
+    return JSON.parse(localStorage.getItem('contacts')) || initialValues;
+  });
+  const [filter, setFilter] = useState('');
 
-  componentDidUpdate(_, prevState) {
-    if (prevState.contacts !== this.state.contacts) {
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-    }
-  }
+  useEffect(() => {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
 
-  componentDidMount() {
-    const parsedContacts = JSON.parse(localStorage.getItem('contacts'));
-    if (parsedContacts) {
-      this.setState({ contacts: parsedContacts });
-    }
-  }
-
-  handleFilterChange = event => {
+  const handleFilterChange = event => {
     const { value } = event.currentTarget;
-    this.setState({
-      filter: value,
-    });
+    setFilter(value);
   };
 
-  getFilteredContacts = () => {
-    const { filter, contacts } = this.state;
+  const getFilteredContacts = () => {
     const normalizedFilter = filter.toLowerCase().trim();
     return contacts.filter(contact =>
       contact.name.toLowerCase().includes(normalizedFilter)
     );
   };
 
-  deleteContact = contactId => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => contact.id !== contactId),
-    }));
+  const deleteContact = contactId => {
+    setContacts(prev => prev.filter(contact => contact.id !== contactId));
   };
 
-  clearFilterField = () => {
-    this.setState({ filter: '' });
+  const clearFilterField = () => {
+    setFilter('');
   };
 
-  addContact = contact => {
-    this.setState(({ contacts }) => ({
-      contacts: [...contacts, contact],
-    }));
+  const addContact = contact => {
+    setContacts([...contacts, contact]);
   };
 
-  render() {
-    const { contacts, filter } = this.state;
-    return (
-      <>
-        <Section title="Add new contact">
-          <PhonebookForm
-            contacts={contacts}
-            addContact={this.addContact}
-          ></PhonebookForm>
-        </Section>
+  return (
+    <>
+      <Section title="Add new contact">
+        <PhonebookForm
+          contacts={contacts}
+          addContact={addContact}
+        ></PhonebookForm>
+      </Section>
 
-        {contacts.length > 0 && (
-          <>
-            <Section title="Filter contacts">
-              <Filter
-                onChange={this.handleFilterChange}
-                value={filter}
-                onClick={this.clearFilterField}
-              ></Filter>
-            </Section>
+      {contacts.length > 0 && (
+        <>
+          <Section title="Filter contacts">
+            <Filter
+              onChange={handleFilterChange}
+              value={filter}
+              onClick={clearFilterField}
+            ></Filter>
+          </Section>
 
-            <Section title="Saved contacts">
-              <ContactsList
-                filteredContacts={this.getFilteredContacts()}
-                onDelete={this.deleteContact}
-              ></ContactsList>
-            </Section>
-          </>
-        )}
-      </>
-    );
-  }
-}
+          <Section title="Saved contacts">
+            <ContactsList
+              filteredContacts={getFilteredContacts()}
+              onDelete={deleteContact}
+            ></ContactsList>
+          </Section>
+        </>
+      )}
+    </>
+  );
+};

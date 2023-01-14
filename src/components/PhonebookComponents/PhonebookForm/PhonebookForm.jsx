@@ -1,37 +1,30 @@
 import PropTypes from 'prop-types';
-import { Component } from 'react';
 import { nanoid } from 'nanoid';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import { Form, Btn } from './PhonebookForm.styled';
+import { useState } from 'react';
 
-export class PhonebookForm extends Component {
-  state = {
-    name: '',
-    number: '',
-  };
+export const PhonebookForm = ({ contacts, addContact }) => {
+  const [name, setName] = useState('');
+  const [number, setNumber] = useState('');
 
-  static propTypes = {
-    addContact: PropTypes.func,
-    contacts: PropTypes.arrayOf(
-      PropTypes.shape({
-        id: PropTypes.string.isRequired,
-        name: PropTypes.string.isRequired,
-        number: PropTypes.string.isRequired,
-      })
-    ),
-  };
-
-  handleInputChange = event => {
+  const handleInputChange = event => {
     const { name, value } = event.currentTarget;
-    this.setState({
-      [name]: value,
-    });
+
+    switch (name) {
+      case 'name':
+        setName(value);
+        break;
+      case 'number':
+        setNumber(value);
+        break;
+      default:
+        console.log('no handler for such field');
+    }
   };
 
-  handleFormSubmit = event => {
+  const handleFormSubmit = event => {
     event.preventDefault();
-    const { contacts, addContact } = this.props;
-    const { name, number } = this.state;
     const contact = {
       id: nanoid(),
       name,
@@ -52,39 +45,48 @@ export class PhonebookForm extends Component {
         addContact(contact);
     }
 
-    this.resetForm();
+    resetForm();
   };
 
-  resetForm = () => {
-    this.setState({ name: '', number: '' });
+  const resetForm = () => {
+    setName('');
+    setNumber('');
   };
 
-  render() {
-    const { name, number } = this.state;
-    return (
-      <Form onSubmit={this.handleFormSubmit}>
-        <input
-          type="text"
-          name="name"
-          value={name}
-          placeholder="Enter name"
-          pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
-          title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
-          onChange={this.handleInputChange}
-          required
-        />
-        <input
-          type="tel"
-          name="number"
-          value={number}
-          placeholder="Enter phone number"
-          pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
-          title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
-          onChange={this.handleInputChange}
-          required
-        />
-        <Btn type="submit">Add contact</Btn>
-      </Form>
-    );
-  }
-}
+  return (
+    <Form onSubmit={handleFormSubmit}>
+      <input
+        type="text"
+        name="name"
+        value={name}
+        placeholder="Enter name"
+        pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
+        title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
+        onChange={handleInputChange}
+        required
+      />
+      <input
+        type="tel"
+        name="number"
+        value={number}
+        placeholder="Enter phone number"
+        pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
+        title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
+        onChange={handleInputChange}
+        required
+      />
+      <Btn type="submit">Add contact</Btn>
+    </Form>
+  );
+};
+
+PhonebookForm.propTypes = {
+  addContact: PropTypes.func,
+  contacts: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      number: PropTypes.string.isRequired,
+    })
+  ),
+};
